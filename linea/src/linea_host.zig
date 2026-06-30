@@ -164,3 +164,26 @@ export fn zkvm_secp256r1_verify(msg: *const [32]u8, sig: *const [64]u8, pubkey: 
     accel.secp256r1_verify(msg, sig, pubkey, verified);
     return 0;
 }
+
+// ── zkvm-standards U256 accelerators — software default ───────────────────────
+//
+// This zkVM has no native 256-bit arithmetic accelerator, so forward the
+// zkvm_u256_* interface to zesu's canonical software implementation
+// (zesu_u256_*, exported from zesu.o) rather than reimplementing the math here.
+extern fn zesu_u256_mod(a: *const [32]u8, b: *const [32]u8, remainder: *[32]u8) i32;
+extern fn zesu_u256_addmod(a: *const [32]u8, b: *const [32]u8, n: *const [32]u8, result: *[32]u8) i32;
+extern fn zesu_u256_mulmod(a: *const [32]u8, b: *const [32]u8, n: *const [32]u8, result: *[32]u8) i32;
+extern fn zesu_u256_div(a: *const [32]u8, b: *const [32]u8, quotient: *[32]u8) i32;
+
+export fn zkvm_u256_mod(a: *const [32]u8, b: *const [32]u8, remainder: *[32]u8) i32 {
+    return zesu_u256_mod(a, b, remainder);
+}
+export fn zkvm_u256_addmod(a: *const [32]u8, b: *const [32]u8, n: *const [32]u8, result: *[32]u8) i32 {
+    return zesu_u256_addmod(a, b, n, result);
+}
+export fn zkvm_u256_mulmod(a: *const [32]u8, b: *const [32]u8, n: *const [32]u8, result: *[32]u8) i32 {
+    return zesu_u256_mulmod(a, b, n, result);
+}
+export fn zkvm_u256_div(a: *const [32]u8, b: *const [32]u8, quotient: *[32]u8) i32 {
+    return zesu_u256_div(a, b, quotient);
+}

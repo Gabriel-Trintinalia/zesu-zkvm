@@ -43,3 +43,48 @@ export fn sys_read(fd: i32, buf: [*]u8, count: usize) isize {
     _ = count;
     return 0;
 }
+
+// ── zkvm-standards U256 accelerator shim (ZisK substitution) ──────────────────
+//
+// zesu calls the zkvm-standards `zkvm_u256_*` interface (zkvm_u256.h). ZisK's
+// libziskos exposes its native 256-bit routines under different names taking
+// 4×u64 little-endian limbs. This object provides the standard symbols by
+// forwarding to those routines; since `zkvm_u256` (== zkvm_bytes_32, 32 bytes)
+// carries zesu's native little-endian word, the conversion is a zero-cost pointer
+// reinterpret (no byte-order swap). When ZisK ships the standard interface
+// natively, this shim is dropped and the guest links it directly.
+//
+// Pointers are 8-byte aligned by the caller (zesu passes a *u256).
+const U256 = [32]u8;
+
+extern fn reduce_mod256_c(a: *const [4]u64, m: *const [4]u64, result: *[4]u64) void;
+extern fn add_mod256_c(a: *const [4]u64, b: *const [4]u64, m: *const [4]u64, result: *[4]u64) void;
+extern fn mul_mod256_c(a: *const [4]u64, b: *const [4]u64, m: *const [4]u64, result: *[4]u64) void;
+extern fn checked_div256_c(a: *const [4]u64, b: *const [4]u64, result: *[4]u64) u8;
+
+inline fn limbs(p: *const U256) *const [4]u64 {
+    return @ptrCast(@alignCast(p));
+}
+inline fn limbsMut(p: *U256) *[4]u64 {
+    return @ptrCast(@alignCast(p));
+}
+
+export fn zkvm_u256_mod(a: *const U256, b: *const U256, remainder: *U256) i32 {
+    reduce_mod256_c(limbs(a), limbs(b), limbsMut(remainder));
+    return 0;
+}
+
+export fn zkvm_u256_addmod(a: *const U256, b: *const U256, n: *const U256, result: *U256) i32 {
+    add_mod256_c(limbs(a), limbs(b), limbs(n), limbsMut(result));
+    return 0;
+}
+
+export fn zkvm_u256_mulmod(a: *const U256, b: *const U256, n: *const U256, result: *U256) i32 {
+    mul_mod256_c(limbs(a), limbs(b), limbs(n), limbsMut(result));
+    return 0;
+}
+
+export fn zkvm_u256_div(a: *const U256, b: *const U256, quotient: *U256) i32 {
+    _ = checked_div256_c(limbs(a), limbs(b), limbsMut(quotient));
+    return 0;
+}
