@@ -8,7 +8,7 @@ name: Release
 #   zesu_version — zesu release tag to pull zesu.rv64im.o from (empty = latest)
 #
 # Targets built:
-#   zisk    — ZisK v1.0.0-alpha; links zesu.o + zisk-wrapped.o (host + libziskos_staticlib merged)
+#   zisk    — ZisK v1.1.0-alpha; links zesu.o + zisk-wrapped.o (host + libziskos_staticlib merged)
 #   openvm  — OpenVM rv64im; links zesu.o + openvm-host.o
 #   linea   — Linea rv64im; links zesu.o + linea-host.o; stripped ELF
 #
@@ -46,7 +46,12 @@ on:
         default: ""
 
 env:
-  ZISK_VERSION: "1.0.0-alpha"
+  # Must match ci.yml's ZISK_VERSION and the memory map / heap symbols in
+  # zisk/zisk.ld. ziskos <= 1.0.0-alpha's allocator references linker-defined
+  # _kernel_heap_bottom/_kernel_heap_top; 1.1.0-alpha replaced those with its
+  # own isolated 8 MiB buffer, so zisk.ld no longer provides them and linking
+  # against a 1.0.0-alpha libziskos_staticlib.a fails with undefined symbols.
+  ZISK_VERSION: "1.1.0-alpha"
   OPENVM_VERSION: "ALPHA"
   LINEA_VERSION: "ALPHA"
   # ere (https://github.com/eth-act/ere) revision whose ere-server-* images we
@@ -114,9 +119,9 @@ jobs:
         run: |
           mkdir -p /tmp/zesu-obj
           if [ -n "${{ inputs.zesu_version }}" ]; then
-            URL="https://github.com/Consensys/zesu/releases/download/${{ inputs.zesu_version }}/zesu.rv64im.o"
+            URL="https://github.com/Consensys-Incorporated/zesu/releases/download/${{ inputs.zesu_version }}/zesu.rv64im.o"
           else
-            URL="https://github.com/Consensys/zesu/releases/latest/download/zesu.rv64im.o"
+            URL="https://github.com/Consensys-Incorporated/zesu/releases/latest/download/zesu.rv64im.o"
           fi
           curl -fsSL "$URL" -o /tmp/zesu-obj/zesu.rv64im.o
 
@@ -172,9 +177,9 @@ jobs:
         run: |
           mkdir -p /tmp/zesu-obj
           if [ -n "${{ inputs.zesu_version }}" ]; then
-            URL="https://github.com/Consensys/zesu/releases/download/${{ inputs.zesu_version }}/zesu.rv64im.o"
+            URL="https://github.com/Consensys-Incorporated/zesu/releases/download/${{ inputs.zesu_version }}/zesu.rv64im.o"
           else
-            URL="https://github.com/Consensys/zesu/releases/latest/download/zesu.rv64im.o"
+            URL="https://github.com/Consensys-Incorporated/zesu/releases/latest/download/zesu.rv64im.o"
           fi
           curl -fsSL "$URL" -o /tmp/zesu-obj/zesu.rv64im.o
 
@@ -209,9 +214,9 @@ jobs:
         run: |
           mkdir -p /tmp/zesu-obj
           if [ -n "${{ inputs.zesu_version }}" ]; then
-            URL="https://github.com/Consensys/zesu/releases/download/${{ inputs.zesu_version }}/zesu.rv64im.o"
+            URL="https://github.com/Consensys-Incorporated/zesu/releases/download/${{ inputs.zesu_version }}/zesu.rv64im.o"
           else
-            URL="https://github.com/Consensys/zesu/releases/latest/download/zesu.rv64im.o"
+            URL="https://github.com/Consensys-Incorporated/zesu/releases/latest/download/zesu.rv64im.o"
           fi
           curl -fsSL "$URL" -o /tmp/zesu-obj/zesu.rv64im.o
 
