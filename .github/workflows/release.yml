@@ -51,8 +51,11 @@ env:
   LINEA_VERSION: "ALPHA"
   # ere (https://github.com/eth-act/ere) revision whose ere-server-* images we
   # pull for VK generation. Keep in sync with the rev ere-guests pins for
-  # ere-platform-core (see its Cargo.lock) — bump when they bump.
-  ERE_TAG: "58ca85b"
+  # ere-platform-core (see its Cargo.lock) — bump when they bump. keygen
+  # transpiles the ELF with ere's own zisk, so ere's ziskos pin must match
+  # ZISK_VERSION too. 0.17.0: ziskos 1.1.0-alpha, and what ere-guests pins.
+  # Note the ghcr tag has no "v" prefix, unlike ere's git tag (v0.17.0).
+  ERE_TAG: "0.17.0"
 
 permissions:
   contents: write
